@@ -1,0 +1,17 @@
+{
+  "author": "William McDonald",
+  "name": "phantode",
+  "description": "Control PhantomJS from node",
+  "version": "0.0.0",
+  "homepage": "https://github.com/WalrusCow/phantode",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/WalrusCow/phantode.git"
+  },
+  "main": "phantode.js",
+  "dependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}

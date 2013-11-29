@@ -6,6 +6,7 @@ var Queue = require('./classes/queue');
 var Page = require('./classes/page');
 var Proxy = require('./classes/proxy');
 var queueWorker = require('./worker');
+var commonUtil = require('./util');
 
 // Configuration
 var config = require('./config');
@@ -14,25 +15,6 @@ var config = require('./config');
 var POLL_INTERVAL = 500;
 
 function noop(){}
-
-function makeSafeCallback(callback, pollFunc) {
-  /* TODO: Make a callback safe with pollFunc ? */
-
-  if (!callback) return noop;
-
-  if (pollFunc) {
-    return function() {
-      var args = Array.prototype.slice.call(arguments);
-      pollFunc(function() {
-        callback.apply(null, args);
-      });
-    }
-  }
-
-  else {
-    return callback;
-  }
-}
 
 function spawnPhantom(opts, callback) {
   /*
@@ -169,7 +151,7 @@ function setupLongPoll(phantom, port, pages, setupPage) {
 
         // TODO: What is this situation?
         if (!result.pageId) {
-          var cb = makeSafeCallback(phantom[result.callback]);
+          var cb = commonUtil.safeCallback(phantom[result.callback]);
           cb.apply(phantom, result.args);
           return;
         }

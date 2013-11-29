@@ -1,52 +1,57 @@
-function Proxy(queue, phantom, pollFunction) {
+/*
+ * Proxy class
+ */
 
+// Methods to build into the prototype
+// They map our method names to the remote method names
+var methods = {
+  'injectJs' : 'injectJs',
+  'createPage': 'createPage',
+  'addCookie': 'addCookie',
+  'clearCookies': 'clearCookies',
+  'deleteCookie': 'deleteCookie',
+  'set': 'setProperty',
+  'get': 'getProperty'
+};
+
+function Proxy(queue, phantom, pollFunction) {
   this.queue = queue;
   this.phantom = phantom;
   this.pollFunction = pollFunction;
 }
 
-Proxy.prototype.createPage = function(cb) {
-  var args = [0, 'createPage'];
-  this.queue.push([args, makeSafeCallback(cb, this.pollFunction)]);
-};
+function makeMethod(name) {
+  return function() {
+    var args = Array.prototype.slice.call(arguments);
 
-Proxy.prototype.injectJs = function(fileName, cb) {
-  var args = [0, 'injectJs', fileName];
-  this.queue.push([args, makeSafeCallback(cb, this.pollFunction)]);
-};
+    // Arguments to pass into the queue
+    var qArgs = [0, name];
 
-Proxy.prototype.addCookie = function(cookie, cb) {
-  var args = [0, 'addCookie', cookie];
-  this.queue.push([args, makeSafeCallback(cb, this.pollFunction)]);
-};
+    // Append everything but the last argument (which is the callback)
+    qArgs = qArgs.concat(args.slice(0, -1));
 
-Proxy.prototype.clearCookies = function(cb) {
-  var args = [0, 'clearCookies'];
-  this.queue.push([args, makeSafeCallback(cb, this.pollFunction)]);
-};
+    // The callback is the last argument
+    var cb = args.slice(-1);
 
-Proxy.prototype.deleteCookie = function(cookie, cb) {
-  var args = [0, 'deleteCookie', cookie];
-  this.queue.push([args, makeSafeCallback(cb, this.pollFunction)]);
-};
+    // Push call into the queue
+    this.queue.push([qArgs, makeSafeCallback(cb, this.pollFunction)]);
+  };
+}
 
-Proxy.prototype.set = function(prop, val, cb) {
-  var args = [0, 'setProperty', prop, val];
-  this.queue.push([args, makeSafeCallback(cb, this.pollFunction)]);
-};
-
-Proxy.prototype.get = function(prop, cb) {
-  var args = [0, 'getProperty', property];
-  this.queue.push([args, makeSafeCallback(cb, this.pollFunction)]);
-};
+// Build prototype methods
+for (key in methods) {
+  Proxy.prototype[key] = makeMethod(methods[key]);
+}
 
 Proxy.prototype.exit = function(cb) {
+  /* Kill the phantom process. */
   this.phantom.kill('SIGTERM');
   makeSafeCallback(cb)();
 };
 
 Proxy.prototype.on = function() {
-  this.phantom.on.apply(this.phaneom, arguments);
+  /* Pass down to phantom process. */
+  this.phantom.on.apply(this.phantom, arguments);
 };
 
 module.exports = Proxy;

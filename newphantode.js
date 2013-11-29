@@ -4,6 +4,9 @@ var child_process = require('child_process');
 
 var Queue = require('./queue');
 var Page = require('./page');
+var queueWorker = require('./worker');
+
+// Configuration
 var config = require('./config');
 
 // How often to poll
@@ -28,11 +31,6 @@ function makeSafeCallback(callback, pollFunc) {
   else {
     return callback;
   }
-}
-
-function unwrapArray(arr) {
-  /* Unwrap an array if it is of length 1. */
-  return arr && arr.length === 1 ? arr[0] : arr;
 }
 
 function spawnPhantom(opts, callback) {
@@ -103,20 +101,135 @@ function spawnPhantom(opts, callback) {
 }
 
 function handlePhantom(callback) {
+  /* Essentially just wrap callback. */
 
   return function(err, phantomInfo) {
     // Fail early on error
     if (err) return callback(err);
+
+    var phantom = phantomInfo.process;
+    var port = phantomInfo.port;
 
     // Object of the pages we are using
     var pages = {};
 
     function makeNewPage(id) {
       /* Create a new page with given id. */
+      var newPage = new Page(id, requestQueue, pollFunction);
+      pages[id] = newPage;
+      return newPage;
+    }
 
+    // TODO
+    var pollFunction = setupLongPoll(phantom, port, pages, makeNewPage);
 
+    // The queue of requests
+    var requestQueue = new Queue(queueWorker);
 
+    // The proxy to use
+    var proxy = new Proxy(requestQueue, phantom, pollFunction);
 
+    callback(null, proxy);
+  };
+}
+
+function setupLongPoll(phantom, port, pages, setupPage) {
+  var httpOptions = {
+    hostname: '127.0.0.1',
+    port: port,
+    path: '/',
+    method: 'GET'
+  };
+
+  // Check if the process has been killed yet
+  var dead = false;
+  phantom.once('exit', function() {
+    dead = true;
+  });
+
+  function pollFunction(cb) {
+    // No-op if the process is dead
+    if (dead) return;
+
+    var req = http.get(httpOptions, useData(function(data) {
+      // Process could have died while waiting for the request
+      if (dead) return;
+
+      try {
+        var data = JSON.parse(data);
+      }
+      catch (e) {
+        console.warn('Error parsing JSON from bridge: %s', err);
+        console.warn('Data received was: %s', data);
+        return;
+      }
+
+      results.forEach(function(result) {
+
+        // TODO: What is this situation?
+        if (!result.pageId) {
+          var cb = makeSafeCallback(phantom[result.callback]);
+          cb.apply(phantom, result.args);
+          return;
+        }
+
+        // The page specified by the result
+        var page = pages[result.pageId];
+
+        if (!page) {
+          console.warn('Invalid page ID received: %s', pageId);
+          return;
+        }
+
+        if (result.callback === 'onPageCreated') {
+          // We actually want to do something special for new pages
+          result.args = [makeNewPage(result.args[0])]
+        }
+
+        // Call the specified callback with the specified arguments
+        if (page[result.callback]) {
+          page[result.callback].apply(page, result.args);
+        }
+
+      });
+
+      cb();
+
+    }));
+
+    req.on('error', function(err) {
+      if (dead) return;
+      console.warn('Poll request error: %s', err);
+    });
+  };
+
+  function repeater() {
+    setTimeout(function() {
+      pollFunction(repeater);
+    }, POLL_INTERVAL);
+  }
+
+  repeater();
+  return pollFunction;
+
+};
+
+function useData(func) {
+  /* Return a function that is a callback to an http request. */
+  return function(res) {
+    res.setEncoding('utf8');
+    var dataBuffer = [];
+
+    // Build up data
+    res.on('data', function(chunk) {
+      dataBuffer.push(new Buffer(chunk));
+
+    // Call function with no error and data
+    }).on('end', function() {
+      func(null, Buffer.concat(dataBuffer).toString());
+
+    // Call function with error when error
+    }).on('error', func);
   };
 }
 
@@ -129,6 +242,6 @@ exports.create = function(callback, options) {
   options.bridgeFile = __dirname + '/bridge.js';
 
   // TODO: callback?
-  spawnPhantom(options, ___);
+  spawnPhantom(options, handlePhantom/*...*/);
 
 };

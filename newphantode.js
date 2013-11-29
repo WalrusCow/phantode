@@ -2,54 +2,14 @@ var http = require('http');
 var util = require('util');
 var child_process = require('child_process');
 
-// It's fun to use our own stuff
-var async = require('./async');
+var Queue = require('./queue');
+var Page = require('./page');
+var config = require('./config');
 
 // How often to poll
 var POLL_INTERVAL = 500;
 
 function noop(){}
-
-function Queue(worker) {
-  /*
-   * A queue to process tasks in asynchronous sequence.  Worker should
-   * take in (task, callback), where callback is node-style.
-   */
-  this._queue = [];
-  this.worker = worker;
-  this._processing = false;
-}
-
-Queue.prototype.push = function(obj) {
-  /* Push a task to the queue. */
-
-  // Push a function to the queue
-  this._queue.push(task);
-
-  // Try to process the queue immediately
-  this.process();
-};
-
-Queue.prototype.process = function() {
-  /* Process the queue. */
-  var self = this;
-
-  // Make sure not to process multiple times
-  if (this._processing || this._queue.length) return;
-
-  // Number of workers completed and finished
-  var done = 0;
-  var todo = this._queue.length;
-
-  function cb() {
-    if (++done === todo) this._processing = false;
-  }
-
-  // Process each element
-  for (var i = 0; i < todo; ++i) {
-    this.worker(this._queue.shift(), cb);
-  }
-};
 
 function makeSafeCallback(callback, pollFunc) {
   /* TODO: Make a callback safe with pollFunc ? */
@@ -76,7 +36,16 @@ function unwrapArray(arr) {
 }
 
 function spawnPhantom(opts, callback) {
-  /* Spawn a phantomJS process. */
+  /*
+   * Attempt to spawn a phantomJS process.
+   *
+   * `callback` is called with (err, phantomInfo) where phantomInfo is:
+   *  {
+   *    process: node child_process handler for the phantomJS process
+   *    port: port number that our child process is listening on
+   *  }
+   *
+   */
   opts = opts || {};
   opts.phantomPath = opts.phantomPath || 'phantomjs';
   opts.params = opts.params || {};
@@ -92,6 +61,63 @@ function spawnPhantom(opts, callback) {
 
   var phantom = child_process.spawn(opts.phantomPath, args);
 
+  // It failed - call callback with an error
+  phantom.once('error', callback);
+  phantom.stderr.on('data', function(data) {
+    console.warn('PhantomJS stderr: %s', data);
+  });
+
+  // Wait for it to be ready (our bridge file will print when ready)
+  phantom.stdout.once('data', function(data) {
+
+    // Now that it is ready, we can print phantomJS stdout like normal
+    phantom.stdout.on('data', function(data) {
+      console.log('PhantomJS stdout: %s', data);
+    });
+
+    // Check that the message received is actually our message
+    if (data !== 'Phantode Ready') {
+      phantom.kill();
+      return callback('Unexpected output from PhantomJS: ' + data);
+    }
+
+    var phantomInfo = {
+      process: phantom,
+      port: config.port
+    };
+
+    callback(null, phantomInfo);
+  });
+
+  var exitCode = 0;
+  phantom.once('exit', function(code) {
+    exitCode = code;
+  });
+
+  // Wait 100 ms to check if phantom exited with failure
+  setTimeout(function() {
+    if (exitCode) {
+      callback('PhantomJS immediately exited with code: ' + exitCode);
+    }
+  }, 100);
+}
+
+function handlePhantom(callback) {
+
+  return function(err, phantomInfo) {
+    // Fail early on error
+    if (err) return callback(err);
+
+    // Object of the pages we are using
+    var pages = {};
+
+    function makeNewPage(id) {
+      /* Create a new page with given id. */
+
+
+
+
+  };
 }
 
 exports.create = function(callback, options) {
@@ -103,6 +129,6 @@ exports.create = function(callback, options) {
   options.bridgeFile = __dirname + '/bridge.js';
 
   // TODO: callback?
-  spawnPhantom(options.params, bridgeFile);
+  spawnPhantom(options, ___);
 
 };

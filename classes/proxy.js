@@ -48,3 +48,5 @@ Proxy.prototype.exit = function(cb) {
 Proxy.prototype.on = function() {
   this.phantom.on.apply(this.phaneom, arguments);
 };
+
+module.exports = Proxy;

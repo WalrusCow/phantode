@@ -2,8 +2,9 @@ var http = require('http');
 var util = require('util');
 var child_process = require('child_process');
 
-var Queue = require('./queue');
-var Page = require('./page');
+var Queue = require('./classes/queue');
+var Page = require('./classes/page');
+var Proxy = require('./classes/proxy');
 var queueWorker = require('./worker');
 
 // Configuration

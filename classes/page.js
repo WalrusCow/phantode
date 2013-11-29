@@ -2,8 +2,7 @@
  * Class to represent a single PhantomJS page.
  */
 
-var config = require('./config');
-
+var config = require('../config');
 
 function Page(id, requestQueue, pollFunction) {
   /* Page class constructor. */
@@ -93,3 +92,5 @@ config.methods.forEach(function(method) {
     this.requestQueue.push([params, makeSafeCallback(cb, this.pollFunction)]);
   };
 });
+
+module.exports = Page;

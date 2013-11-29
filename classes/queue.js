@@ -38,3 +38,5 @@ Queue.prototype.process = function() {
     this.worker(this._queue.shift(), cb);
   }
 };
+
+module.exports = Queue;

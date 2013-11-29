@@ -1,6 +1,12 @@
+/*
+ * Class to represent a single PhantomJS page.
+ */
+
+var config = require('./config');
 
 
 function Page(id, requestQueue, pollFunction) {
+  /* Page class constructor. */
   this.id = id;
   this.requestQueue = requestQueue;
   this.pollFunction = pollFunction;
@@ -72,3 +78,18 @@ Page.prototype.waitForSelector = function(selector, cb, timeout) {
   // Begin testing for the selector
   setTimeout(testForSelector, timeoutInterval);
 };
+
+// Build prototype with a bunch of identical functions
+config.methods.forEach(function(method) {
+  Page.prototype[method] = function() {
+    var args = Array.prototype.slice.call(arguments);
+    var callback;
+
+    // Check if we were given a callback as the last argument
+    if (args.length && typeof args[args.length - 1] === 'function') {
+      cb = args.pop();
+    }
+    var params = [this.id, method].concat(args);
+    this.requestQueue.push([params, makeSafeCallback(cb, this.pollFunction)]);
+  };
+});

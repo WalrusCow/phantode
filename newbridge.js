@@ -36,6 +36,7 @@ phantom.onError = function(msg, trace) {
 };
 
 function pageOpen(res, page, args) {
+  // TODO: Why are we concatting this fn?
   page.open.apply(page, args.concat(function(success) {
     res.setHeader('Content-Type', 'application/json');
     res.write(JSON.stringify(success));
@@ -158,3 +159,58 @@ function setupCallbacks(id, page) {
 
 }
 
+function setupPage(page) {
+  /* Set up a new page for use. */
+  var id = pageId;
+  pageId += 1;
+
+  page.getProperty = function(prop) {
+    return page[prop];
+  };
+  page.setProperty = function(prop, val) {
+    return page[prop] = val;
+  };
+  page.setFunction = function(name, fn) {
+    // We are setting a function from the user
+    page[name] = eval('(' + fn + ')');
+    return true;
+  };
+  pages[id] = page;
+  setupCallbacks(id, page);
+  return id;
+}
+
+// TODO in a loop
+var GLOB_METHODS = [
+  'injectJs', 'exit', 'addCookie', 'clearCookies', 'deleteCookies'
+];
+var globalMethods = {
+  createPage: function() {
+    var page = webpage.create();
+    var id = setupPage(page);
+    return {
+      pageId: id
+    };
+  },
+
+  // TODO: Make this a generic with `this` and binding
+  // Also TODO, why is this `getProperty` and not just get?
+  // -> is `get` a phantomJS method already?
+  getProperty: function(prop) {
+    return phantom[prop];
+  },
+  setProperty: function(prop, value) {
+    phantom[prop] = value;
+    // TODO: Why are we returning true?
+    return true;
+  }
+};
+
+GLOB_METHODS.forEach(function(method) {
+  globalMethods[method] = function() {
+    return phantom[method].apply(phantom, arguments);
+  };
+});
+
+// Signal that we are ready!
+console.log('Ready');

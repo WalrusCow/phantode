@@ -8,7 +8,7 @@ function Queue(worker) {
   this._processing = false;
 }
 
-Queue.prototype.push = function(obj) {
+Queue.prototype.push = function(task) {
   /* Push a task to the queue. */
 
   // Push a function to the queue

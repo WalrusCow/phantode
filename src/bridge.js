@@ -7,9 +7,6 @@ var webServer = require('webserver').create();
 // General configurations
 var config = require('./config');
 
-// host:port
-var serverHost = '127.0.0.1:' + config.port;
-
 // Object of pages to lookup
 var pages = {};
 var pageId = 1;
@@ -109,7 +106,7 @@ function serverHandler(req, res) {
   }
 }
 
-var server = webServer.listen(serverHost, serverHandler);
+var server = webServer.listen(config.port, serverHandler);
 
 var callbacks = [
   'onAlert', 'onCallback', 'onClosing', 'onConfirm', 'onConsoleMessage',
@@ -213,4 +210,4 @@ GLOB_METHODS.forEach(function(method) {
 });
 
 // Signal that we are ready!
-console.log('Ready');
+console.log('Phantode Ready');

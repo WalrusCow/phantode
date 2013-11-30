@@ -34,11 +34,11 @@ function spawnPhantom(opts, callback) {
 
   var args = [];
   // Build up command line arguments
-  for (var param in params) {
-    args.push('--' + param + '=' + params[param]);
+  for (var param in opts.params) {
+    args.push('--' + param + '=' + opts.params[param]);
   }
 
-  args.push(bridgeFile);
+  args.push(opts.bridgeFile);
 
   var phantom = child_process.spawn(opts.phantomPath, args);
 
@@ -57,7 +57,7 @@ function spawnPhantom(opts, callback) {
     });
 
     // Check that the message received is actually our message
-    if (data !== 'Phantode Ready') {
+    if (!/Phantode Ready/.test(data)) {
       phantom.kill();
       return callback('Unexpected output from PhantomJS: ' + data);
     }
@@ -109,7 +109,7 @@ function handlePhantom(callback) {
     // The queue of requests
     var requestQueue = new Queue(queueWorker);
 
-    // The proxy to use
+    // The proxy to use TODO: better docs
     var proxy = new Proxy(requestQueue, phantom, pollFunction);
 
     callback(null, proxy);
@@ -134,7 +134,7 @@ function setupLongPoll(phantom, port, pages, setupPage) {
     // No-op if the process is dead
     if (dead) return;
 
-    var req = http.get(httpOptions, useData(function(data) {
+    var req = http.get(httpOptions, useData(function(err, data) {
       // Process could have died while waiting for the request
       if (dead) return;
 
@@ -147,9 +147,8 @@ function setupLongPoll(phantom, port, pages, setupPage) {
         return;
       }
 
-      results.forEach(function(result) {
-
-        // TODO: What is this situation?
+      data.forEach(function(result) {
+        // TODO: What is this situation of no pageId?
         if (!result.pageId) {
           var cb = commonUtil.safeCallback(phantom[result.callback]);
           cb.apply(phantom, result.args);
@@ -158,7 +157,6 @@ function setupLongPoll(phantom, port, pages, setupPage) {
 
         // The page specified by the result
         var page = pages[result.pageId];
-
         if (!page) {
           console.warn('Invalid page ID received: %s', pageId);
           return;
@@ -177,7 +175,6 @@ function setupLongPoll(phantom, port, pages, setupPage) {
       });
 
       cb();
-
     }));
 
     req.on('error', function(err) {
@@ -225,6 +222,6 @@ exports.create = function(callback, options) {
   options.bridgeFile = __dirname + '/bridge.js';
 
   // TODO: callback?
-  spawnPhantom(options, handlePhantom/*...*/);
+  spawnPhantom(options, handlePhantom(callback));
 
 };

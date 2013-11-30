@@ -3,7 +3,7 @@
 function queueWorker(params, next) {
   /* Worker for the queue. */
   var callback = params[1];
-  var params = params[0];
+  params = params[0];
 
   // The page to work on
   var page = params[0];

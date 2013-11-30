@@ -41,7 +41,7 @@ function makeMethod(name) {
 }
 
 // Build prototype methods
-for (key in methods) {
+for (var key in methods) {
   Proxy.prototype[key] = makeMethod(methods[key]);
 }
 

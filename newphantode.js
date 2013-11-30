@@ -139,7 +139,7 @@ function setupLongPoll(phantom, port, pages, setupPage) {
       if (dead) return;
 
       try {
-        var data = JSON.parse(data);
+        data = JSON.parse(data);
       }
       catch (e) {
         console.warn('Error parsing JSON from bridge: %s', err);
@@ -166,7 +166,7 @@ function setupLongPoll(phantom, port, pages, setupPage) {
 
         if (result.callback === 'onPageCreated') {
           // We actually want to do something special for new pages
-          result.args = [makeNewPage(result.args[0])]
+          result.args = [makeNewPage(result.args[0])];
         }
 
         // Call the specified callback with the specified arguments
@@ -184,7 +184,7 @@ function setupLongPoll(phantom, port, pages, setupPage) {
       if (dead) return;
       console.warn('Poll request error: %s', err);
     });
-  };
+  }
 
   function repeater() {
     setTimeout(function() {
@@ -195,7 +195,7 @@ function setupLongPoll(phantom, port, pages, setupPage) {
   repeater();
   return pollFunction;
 
-};
+}
 
 function useData(func) {
   /* Return a function that is a callback to an http request. */

@@ -44,7 +44,7 @@ function pageOpen(res, page, args) {
   }));
 }
 
-function serveHandler(req, res) {
+function serverHandler(req, res) {
   /* Function that drives the web server. */
 
   // TODO: GET and POST are two different things
@@ -72,7 +72,7 @@ function serveHandler(req, res) {
       }
 
       try {
-        var output = page[method].apply(page, request.args);
+        output = page[method].apply(page, request.args);
       }
       catch (err) {
         error = err;

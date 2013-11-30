@@ -13,12 +13,10 @@ exports.safeCallback = function(callback, pollFunc) {
       pollFunc(function() {
         callback.apply(null, args);
       });
-    }
+    };
   }
 
   else {
     return callback;
   }
-}
-
-
+};

@@ -1,6 +1,6 @@
 {
-  port: 37942,
-  methods: [
+  "port": 37942,
+  "methods": [
     "addCookie", "childFramesCount", "childFramesName", "clearCookies",
     "close", "currentFrameName", "deleteCookie", "evaluateJavaScript",
     "evaluateAsync", "getPage", "go", "goBack", "goForward", "includeJs",

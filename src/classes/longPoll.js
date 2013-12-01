@@ -5,15 +5,16 @@
 var config = require('../config');
 var commonUtil = require('../util');
 
-function LongPoll(phantom, pages, setupPage) {
+function LongPoll(phantomProcess, pages, setupPage) {
   // Record if the phantom process is dead yet
   this._dead = false;
 
   // TODO: Have this encapsulated somewhere in a function/class
+  // because this is horribly all intertwined
   this.pages = pages;
 
   // Options to use to send requests to the bridge
-  // TODO: This could/should be configurable
+  // TODO: Should this be configurable?
   this._httpOptions = {
     hostname: '127.0.0.1',
     port: config.port,
@@ -45,9 +46,10 @@ LongPoll.prototype._processResult = function(result) {
   if (this._dead) return;
 
   // TODO: What is this situation?
+  // Execute function on the process itself
   if (!result.pageId) {
-    var cb = commonUtil.safeCallback(phantom[result.callback]);
-    cb.apply(phantom, result.args);
+    var cb = commonUtil.safeCallback(phantomProcess[result.callback]);
+    cb.apply(phantomProcess, result.args);
     return;
   }
 

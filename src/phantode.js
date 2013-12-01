@@ -19,6 +19,8 @@ function spawnPhantom(opts, callback) {
   /*
    * Attempt to spawn a phantomJS process.
    * `callback` is called with (err, phantomProcess)
+   *
+   * TODO: Make this spawn a Phantom class
    */
 
   opts = opts || {};
@@ -98,9 +100,8 @@ function handlePhantom(callback) {
       return newPage;
     }
 
-    // TODO: Why does this take makeNewPage ??
-    var pollFunction = setupLongPoll(phantomProcess, pages, makeNewPage);
-    var poller = new LongPoll(pages, makeNewPage);
+    // TODO: Get rid of these args.. it's terrible design
+    var poller = new LongPoll(phantomProcess, pages, makeNewPage);
 
     // We don't want to poll after phantom process has closed
     phantomProcess.once('exit', function() {
@@ -125,7 +126,5 @@ exports.create = function(callback, options) {
   // Path to bridge file
   options.bridgeFile = __dirname + '/bridge.js';
 
-  // TODO: callback?
   spawnPhantom(options, handlePhantom(callback));
-
 };

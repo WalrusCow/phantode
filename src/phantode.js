@@ -3,7 +3,7 @@ var child_process = require('child_process');
 
 var Queue = require('./classes/queue');
 var Page = require('./classes/page');
-var Proxy = require('./classes/proxy');
+var Phantom = require('./classes/phantom');
 var queueWorker = require('./worker');
 var commonUtil = require('./util');
 
@@ -22,7 +22,6 @@ function spawnPhantom(opts, callback) {
    * `callback` is called with (err, phantomInfo) where phantomInfo is:
    *  {
    *    process: node child_process handler for the phantomJS process
-   *    port: port number that our child process is listening on
    *  }
    *
    */
@@ -63,7 +62,6 @@ function spawnPhantom(opts, callback) {
 
     var phantomInfo = {
       process: phantom,
-      port: config.port
     };
 
     callback(null, phantomInfo);
@@ -82,6 +80,15 @@ function spawnPhantom(opts, callback) {
   }, 100);
 }
 
+function pageGenerator(queue, poll, pages) {
+  /* Encapsulate queue, poll, pages. */
+  return function(id) {
+    var newPage = new Page(id, queue, poll);
+    pages[id] = newPage;
+    return newPage;
+  };
+}
+
 function handlePhantom(callback) {
   /* Essentially just wrap callback. */
 
@@ -90,7 +97,6 @@ function handlePhantom(callback) {
     if (err) return callback(err);
 
     var phantom = phantomInfo.process;
-    var port = phantomInfo.port;
 
     // Object of the pages we are using
     var pages = {};
@@ -102,95 +108,23 @@ function handlePhantom(callback) {
       return newPage;
     }
 
-    // TODO
-    var pollFunction = setupLongPoll(phantom, port, pages, makeNewPage);
+    // TODO: Why does this take makeNewPage ??
+    var pollFunction = setupLongPoll(phantom, pages, makeNewPage);
+    var poller = new LongPoll(pages, makeNewPage);
+
+    // We don't want to poll after phantom process has closed
+    phantom.once('exit', function() {
+      poller.close();
+    });
 
     // The queue of requests
     var requestQueue = new Queue(queueWorker);
 
-    // The proxy to use TODO: better docs
-    var proxy = new Proxy(requestQueue, phantom, pollFunction);
+    // Handler for the phantom process that we spawned
+    var phantom = new Phantom(phantom, poller);
 
-    callback(null, proxy);
+    callback(null, phantom);
   };
-}
-
-function setupLongPoll(phantom, port, pages, setupPage) {
-  var httpOptions = {
-    hostname: '127.0.0.1',
-    port: port,
-    path: '/',
-    method: 'GET'
-  };
-
-  // Check if the process has been killed yet
-  var dead = false;
-  phantom.once('exit', function() {
-    dead = true;
-  });
-
-  function pollFunction(cb) {
-    // No-op if the process is dead
-    if (dead) return;
-
-    var req = http.get(httpOptions, commonUtil.useData(function(err, data) {
-      // Process could have died while waiting for the request
-      if (dead) return;
-
-      try {
-        data = JSON.parse(data);
-      }
-      catch (e) {
-        console.warn('Error parsing JSON from bridge: %s', err);
-        console.warn('Data received was: %s', data);
-        return;
-      }
-
-      data.forEach(function(result) {
-        // TODO: What is this situation of no pageId?
-        if (!result.pageId) {
-          var cb = commonUtil.safeCallback(phantom[result.callback]);
-          cb.apply(phantom, result.args);
-          return;
-        }
-
-        // The page specified by the result
-        var page = pages[result.pageId];
-        if (!page) {
-          console.warn('Invalid page ID received: %s', pageId);
-          return;
-        }
-
-        if (result.callback === 'onPageCreated') {
-          // We actually want to do something special for new pages
-          result.args = [makeNewPage(result.args[0])];
-        }
-
-        // Call the specified callback with the specified arguments
-        if (page[result.callback]) {
-          page[result.callback].apply(page, result.args);
-        }
-
-      });
-
-      cb();
-    }));
-
-    req.on('error', function(err) {
-      if (dead) return;
-      console.warn('Poll request error: %s', err);
-    });
-  }
-
-  function repeater() {
-    setTimeout(function() {
-      pollFunction(repeater);
-    }, POLL_INTERVAL);
-  }
-
-  repeater();
-  return pollFunction;
-
 }
 
 exports.create = function(callback, options) {

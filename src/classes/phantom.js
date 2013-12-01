@@ -1,8 +1,10 @@
 /*
- * Proxy class
+ * Class to control a single phantom process.
  */
 
 var commonUtil = require('../util');
+var queueWorker = require('../worker');
+var Queue = require('./queue');
 
 // Methods to build into the prototype
 // They map our method names to the remote method names
@@ -16,11 +18,20 @@ var methods = {
   'get': 'getProperty'
 };
 
-function Proxy(queue, phantom, pollFunc) {
-  this.queue = queue;
+function Phantom(phantom, pollFunc) {
+  /* Class for a phantom process. */
+  this.queue = new Queue(queueWorker);
   this.phantom = phantom;
   this.pollFunc = pollFunc;
+
+  this.pages = {};
 }
+
+Phantom.prototype._makeNewPage = function(id) {
+  var newPage = new Page(id, this.queue, this.pollFunc);
+  this.pages[id] = newPage;
+  return newPage;
+};
 
 function makeMethod(name) {
   return function() {
@@ -42,18 +53,18 @@ function makeMethod(name) {
 
 // Build prototype methods
 for (var key in methods) {
-  Proxy.prototype[key] = makeMethod(methods[key]);
+  Phantom.prototype[key] = makeMethod(methods[key]);
 }
 
-Proxy.prototype.exit = function(cb) {
+Phantom.prototype.exit = function(cb) {
   /* Kill the phantom process. */
   this.phantom.kill('SIGTERM');
   commonUtil.safeCallback(cb)();
 };
 
-Proxy.prototype.on = function() {
+Phantom.prototype.on = function() {
   /* Pass down to phantom process. */
   this.phantom.on.apply(this.phantom, arguments);
 };
 
-module.exports = Proxy;
+module.exports = Phantom;

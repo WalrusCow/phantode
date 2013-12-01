@@ -18,13 +18,9 @@ function noop(){}
 function spawnPhantom(opts, callback) {
   /*
    * Attempt to spawn a phantomJS process.
-   *
-   * `callback` is called with (err, phantomInfo) where phantomInfo is:
-   *  {
-   *    process: node child_process handler for the phantomJS process
-   *  }
-   *
+   * `callback` is called with (err, phantomProcess)
    */
+
   opts = opts || {};
   opts.phantomPath = opts.phantomPath || 'phantomjs';
   opts.params = opts.params || {};
@@ -60,11 +56,7 @@ function spawnPhantom(opts, callback) {
       return callback('Unexpected output from PhantomJS: ' + data);
     }
 
-    var phantomInfo = {
-      process: phantom,
-    };
-
-    callback(null, phantomInfo);
+    callback(null, phantom);
   });
 
   var exitCode = 0;
@@ -92,13 +84,11 @@ function pageGenerator(queue, poll, pages) {
 function handlePhantom(callback) {
   /* Essentially just wrap callback. */
 
-  return function(err, phantomInfo) {
+  return function(err, phantomProcess) {
     // Fail early on error
     if (err) return callback(err);
 
-    var phantom = phantomInfo.process;
-
-    // Object of the pages we are using
+    // Object of the pages we are using for this process
     var pages = {};
 
     function makeNewPage(id) {
@@ -109,11 +99,11 @@ function handlePhantom(callback) {
     }
 
     // TODO: Why does this take makeNewPage ??
-    var pollFunction = setupLongPoll(phantom, pages, makeNewPage);
+    var pollFunction = setupLongPoll(phantomProcess, pages, makeNewPage);
     var poller = new LongPoll(pages, makeNewPage);
 
     // We don't want to poll after phantom process has closed
-    phantom.once('exit', function() {
+    phantomProcess.once('exit', function() {
       poller.close();
     });
 

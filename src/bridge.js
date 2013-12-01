@@ -90,10 +90,7 @@ function serverHandler(req, res) {
     res.setHeader('Content-Type', 'application/json');
 
     // Give an indicative status code
-    res.statusCode = 200;
-    if (error) {
-      res.statusCode = 500;
-    }
+    res.statusCode = error ? 500 : 200;
 
     // Write error or output, as appropriate
     res.write(JSON.stringify(error || output || null));

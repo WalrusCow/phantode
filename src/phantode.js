@@ -1,5 +1,4 @@
 var http = require('http');
-var util = require('util');
 var child_process = require('child_process');
 
 var Queue = require('./classes/queue');
@@ -134,7 +133,7 @@ function setupLongPoll(phantom, port, pages, setupPage) {
     // No-op if the process is dead
     if (dead) return;
 
-    var req = http.get(httpOptions, useData(function(err, data) {
+    var req = http.get(httpOptions, commonUtil.useData(function(err, data) {
       // Process could have died while waiting for the request
       if (dead) return;
 
@@ -192,25 +191,6 @@ function setupLongPoll(phantom, port, pages, setupPage) {
   repeater();
   return pollFunction;
 
-}
-
-function useData(func) {
-  /* Return a function that is a callback to an http request. */
-  return function(res) {
-    res.setEncoding('utf8');
-    var dataBuffer = [];
-
-    // Build up data
-    res.on('data', function(chunk) {
-      dataBuffer.push(new Buffer(chunk));
-
-    // Call function with no error and data
-    }).on('end', function() {
-      func(null, Buffer.concat(dataBuffer).toString());
-
-    // Call function with error when error
-    }).on('error', func);
-  };
 }
 
 exports.create = function(callback, options) {

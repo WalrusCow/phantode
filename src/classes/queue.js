@@ -23,7 +23,9 @@ Queue.prototype.process = function() {
   var self = this;
 
   // Make sure not to process multiple times
-  if (this._processing || this._queue.length) return;
+  if (this._processing || !this._queue.length) return;
+
+  this._processing = true;
 
   // Number of workers completed and finished
   var done = 0;

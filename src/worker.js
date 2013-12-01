@@ -1,4 +1,8 @@
 /* File for the queue worker. */
+var http = require('http');
+
+var config = require('./config');
+var commonUtil = require('./util');
 
 function queueWorker(params, next) {
   /* Worker for the queue. */
@@ -14,31 +18,45 @@ function queueWorker(params, next) {
   // Other arguments
   var args = params.slice(2);
 
+  // JSON to send to bridge
+  var json = JSON.stringify({
+    page: page,
+    method: method,
+    args: args
+  });
+
   // Options for http polling
   var httpOptions = {
     hostname: '127.0.0.1',
     port: config.port,
     path: '/',
-    method: 'POST'
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(json)
+    }
   };
 
   // Send request to bridge
-  var req = http.request(httpOptions, useData(function(err, data) {
+  var req = http.request(httpOptions, commonUtil.useData(function(err, data) {
     var cbErr = null;
     var cbData = data;
 
     if (!data) {
       // Don't send data to callback on error
       cbErr = 'No response data: ' + method + '()';
-      cbData = undefined;
+      cbData = null;
     }
     else if (err) {
       // Don't send data to callback on error
       cbErr = data;
-      cbData = undefined;
+      cbData = null;
     }
     else if (method === 'createPage') {
       // Creating the page is special
+      // TODO: Need to find a good way to expose this
+      // since currently makeNewPage requires the requestQueue and
+      // the pollFunction.  It should really just require the id though
       var page = makeNewPage(data.pageId);
       cbData = page;
     }
@@ -47,27 +65,17 @@ function queueWorker(params, next) {
     callback(cbErr, cbData);
   }));
 
+  // Send JSON
+  req.write(json);
+
   // Some error while sending to bridge
   req.on('error', function(err) {
     console.warn('Error evaluating %s() call: %s', method, err);
     next();
   });
 
-  // JSON to send to bridge
-  var json = JSON.stringify({
-    page: page,
-    method: method,
-    args: args
-  });
-
-  // We need these headers
-  req.setHeader('Content-Type', 'application/json');
-  req.setHeader('Content-length', Buffer.byteLength(json));
-
-  // Send JSON and end the request
-  req.write(json);
+  // End request
   req.end();
-
 }
 
 module.exports = queueWorker;

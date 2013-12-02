@@ -2,6 +2,8 @@
  * Common utilities.
  */
 
+function noop() {}
+
 exports.safeCallback = function(callback, pollFunc) {
   /* TODO: Make a callback safe with pollFunc ? */
 

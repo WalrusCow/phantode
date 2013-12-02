@@ -10,8 +10,6 @@ var config = require('./config');
 // How often to poll
 var POLL_INTERVAL = 500;
 
-function noop(){}
-
 function spawnPhantom(opts, callback) {
   /*
    * Attempt to spawn a phantomJS process.

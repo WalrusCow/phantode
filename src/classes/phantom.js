@@ -18,13 +18,20 @@ var methods = {
   'get': 'getProperty'
 };
 
-function Phantom(phantom, pollFunc) {
-  /* Class for a phantom process. */
-  this.queue = new Queue(queueWorker);
-  this.phantom = phantom;
-  this.pollFunc = pollFunc;
-
+function Phantom(process) {
+  /* A wrapper object around the phantom process. */
+  // Pages for this process
   this.pages = {};
+
+  // TODO: How to extract pages and shit from longpoll?
+  // maybe pass this?
+  this.poller = new LongPoll(process, this);
+
+  // Stop polling once process has died
+  process.once('exit', this.poller.close);
+
+  // A queue to use for processing requests
+  this.requestQueue = new Queue(queueWorker);
 }
 
 Phantom.prototype._makeNewPage = function(id) {

@@ -1,11 +1,8 @@
 var http = require('http');
 var child_process = require('child_process');
 
-var Queue = require('./classes/queue');
-var Page = require('./classes/page');
+// Class to wrap a phantomJS process
 var Phantom = require('./classes/phantom');
-var queueWorker = require('./worker');
-var commonUtil = require('./util');
 
 // Configuration
 var config = require('./config');
@@ -20,7 +17,7 @@ function spawnPhantom(opts, callback) {
    * Attempt to spawn a phantomJS process.
    * `callback` is called with (err, phantomProcess)
    *
-   * TODO: Make this spawn a Phantom class
+   * TODO: Make this spawn a Phantom class, and simplify callback
    */
 
   opts = opts || {};
@@ -74,15 +71,6 @@ function spawnPhantom(opts, callback) {
   }, 100);
 }
 
-function pageGenerator(queue, poll, pages) {
-  /* Encapsulate queue, poll, pages. */
-  return function(id) {
-    var newPage = new Page(id, queue, poll);
-    pages[id] = newPage;
-    return newPage;
-  };
-}
-
 function handlePhantom(callback) {
   /* Essentially just wrap callback. */
 
@@ -90,30 +78,8 @@ function handlePhantom(callback) {
     // Fail early on error
     if (err) return callback(err);
 
-    // Object of the pages we are using for this process
-    var pages = {};
-
-    function makeNewPage(id) {
-      /* Create a new page with given id. */
-      var newPage = new Page(id, requestQueue, pollFunction);
-      pages[id] = newPage;
-      return newPage;
-    }
-
-    // TODO: Get rid of these args.. it's terrible design
-    var poller = new LongPoll(phantomProcess, pages, makeNewPage);
-
-    // We don't want to poll after phantom process has closed
-    phantomProcess.once('exit', function() {
-      poller.close();
-    });
-
-    // The queue of requests
-    var requestQueue = new Queue(queueWorker);
-
-    // Handler for the phantom process that we spawned
-    var phantom = new Phantom(phantom, poller);
-
+    // Create new wrapper for this process
+    var phantom = new Phantom(phantomProcess);
     callback(null, phantom);
   };
 }

@@ -33,15 +33,6 @@ function LongPoll(phantomProcess, pages, setupPage) {
   this.poll();
 }
 
-function() {
-  /* Function to poll continuously. */
-  var self = this;
-  console.log('Has poll:',this.poll);
-  setTimeout(function() {
-    self.poll(self.repeatPoll);
-  }, this.pollInterval);
-};
-
 LongPoll.prototype.close = function() {
   /* To be called when the phantom process dies. */
   this._dead = true;

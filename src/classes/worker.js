@@ -1,11 +1,20 @@
 /* File for the queue worker. */
 var http = require('http');
 
-var config = require('./config');
-var commonUtil = require('./util');
+var config = require('../config');
+var commonUtil = require('../util');
 
-function queueWorker(params, next) {
+function Worker(phantom) {
   /* Worker for the queue. */
+  this.phantom = phantom;
+}
+
+Worker.prototype.work = function(params, next) {
+  /* Do work. */
+
+  var self = this;
+
+  // TODO: Make sure to use an object instead of this garbage
   var callback = params[1];
   params = params[0];
 
@@ -57,7 +66,7 @@ function queueWorker(params, next) {
       // TODO: Need to find a good way to expose this
       // since currently makeNewPage requires the requestQueue and
       // the pollFunction.  It should really just require the id though
-      var page = makeNewPage(data.pageId);
+      var page = self.phantom._makeNewPage(data.pageId);
       cbData = page;
     }
 
@@ -78,4 +87,4 @@ function queueWorker(params, next) {
   req.end();
 }
 
-module.exports = queueWorker;
+module.exports = Worker;

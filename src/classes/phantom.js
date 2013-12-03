@@ -3,8 +3,10 @@
  */
 
 var commonUtil = require('../util');
-var queueWorker = require('../worker');
+var Worker = require('./worker');
 var Queue = require('./queue');
+var LongPoll = require('./longPoll');
+var Page = require('./page');
 
 // Methods to build into the prototype
 // They map our method names to the remote method names
@@ -30,12 +32,13 @@ function Phantom(process) {
   // Stop polling once process has died
   process.once('exit', this.poller.close);
 
+  var queueWorker = new Worker(this);
   // A queue to use for processing requests
   this.requestQueue = new Queue(queueWorker);
 }
 
 Phantom.prototype._makeNewPage = function(id) {
-  var newPage = new Page(id, this.queue, this.pollFunc);
+  var newPage = new Page(id, this.requestQueue, this.poller);
   this.pages[id] = newPage;
   return newPage;
 };
@@ -51,10 +54,10 @@ function makeMethod(name) {
     qArgs = qArgs.concat(args.slice(0, -1));
 
     // The callback is the last argument
-    var cb = args.slice(-1);
+    var cb = args.slice(-1)[0];
 
     // Push call into the queue
-    this.queue.push([qArgs, commonUtil.safeCallback(cb, this.pollFunc)]);
+    this.requestQueue.push([qArgs, commonUtil.safeCallback(cb, this.pollFunc)]);
   };
 }
 

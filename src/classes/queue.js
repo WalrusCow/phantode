@@ -11,6 +11,7 @@ function Queue(worker) {
 Queue.prototype.push = function(task) {
   /* Push a task to the queue. */
 
+  console.log('Pushing ', task);
   // Push a function to the queue
   this._queue.push(task);
 
@@ -37,7 +38,7 @@ Queue.prototype.process = function() {
 
   // Process each element
   for (var i = 0; i < todo; ++i) {
-    this.worker(this._queue.shift(), cb);
+    this.worker.work(this._queue.shift(), cb);
   }
 };
 

@@ -2,12 +2,16 @@
  * A function for polling your mother.
  */
 
+var http = require('http');
+
 var config = require('../config');
 var commonUtil = require('../util');
 
 function LongPoll(phantomProcess, pages, setupPage) {
   // Record if the phantom process is dead yet
   this._dead = false;
+
+  this.pollInterval = 500;
 
   // TODO: Have this encapsulated somewhere in a function/class
   // because this is horribly all intertwined
@@ -22,15 +26,19 @@ function LongPoll(phantomProcess, pages, setupPage) {
     method: 'GET'
   };
 
+  // Set up repeat poller
+  this.repeatPoll = commonUtil.throttle(this.poll, this.pollInterval, this);
+
   // Begin continuous polling
-  this.repeatPoll();
+  this.poll();
 }
 
-LongPoll.repeatPoll = function() {
+function() {
   /* Function to poll continuously. */
   var self = this;
+  console.log('Has poll:',this.poll);
   setTimeout(function() {
-    self.poll(repeatPoll());
+    self.poll(self.repeatPoll);
   }, this.pollInterval);
 };
 
@@ -77,7 +85,7 @@ LongPoll.prototype.poll = function(callback) {
 
   var self = this;
 
-  var req = http.get(httpOptions, commonUtil.useData(function(err, data) {
+  var req = http.get(this._httpOptions, commonUtil.useData(function(err, data) {
     // Process could have died while waiting for the request
     if (self._dead) return;
 
@@ -99,8 +107,9 @@ LongPoll.prototype.poll = function(callback) {
     // Process each result
     data.forEach(self._processResult.bind(self));
 
-    // Done
-    callback();
+    // Done, execute callback and poll again
+    callback && callback();
+    self.repeatPoll();
   }));
 
   // Some failure from the bridge
@@ -109,3 +118,5 @@ LongPoll.prototype.poll = function(callback) {
     console.warn('Poll request error: %s', err);
   });
 };
+
+module.exports = LongPoll;

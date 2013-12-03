@@ -5,26 +5,26 @@
 var config = require('../config');
 var commonUtil = require('../util');
 
-function Page(id, queue, pollFunc) {
+function Page(id, queue, poller) {
   /* Page class constructor. */
   this.id = id;
   this.queue = queue;
-  this.pollFunc = pollFunc;
+  this.poll = poller.poll.bind(poller);
 }
 
 Page.prototype.setFn = function(name, fn, cb) {
   var args = [this.id, 'setFunction', name, fn.toString()];
-  this.queue.push([args, commonUtil.safeCallback(cb, this.pollFunc)]);
+  this.queue.push([args, commonUtil.safeCallback(cb, this.poll)]);
 };
 
 Page.prototype.get = function(name, cb) {
   var args = [this.id, 'getProperty', name];
-  this.queue.push([args, commonUtil.safeCallback(cb, this.pollFunc)]);
+  this.queue.push([args, commonUtil.safeCallback(cb, this.poll)]);
 };
 
 Page.prototype.set = function(name, val, cb) {
   var args = [this.id, 'setProperty', name, val];
-  this.queue.push([args, commonUtil.safeCallback(cb, this.pollFunc)]);
+  this.queue.push([args, commonUtil.safeCallback(cb, this.poll)]);
 };
 
 Page.prototype.evaluate = function(fn, cb) {
@@ -32,7 +32,7 @@ Page.prototype.evaluate = function(fn, cb) {
   if (arguments.length > 2) {
     args.concat(Array.prototype.slice.call(arguments, 2));
   }
-  this.queue.push([args, commonUtil.safeCallback(cb, this.pollFunc)]);
+  this.queue.push([args, commonUtil.safeCallback(cb, this.poll)]);
 };
 
 Page.prototype.waitForSelector = function(selector, cb, timeout) {
@@ -90,7 +90,8 @@ config.methods.forEach(function(method) {
       cb = args.pop();
     }
     var params = [this.id, method].concat(args);
-    this.queue.push([params, commonUtil.safeCallback(cb, this.pollFunc)]);
+    console.log('page method',method,this);
+    this.queue.push([params, commonUtil.safeCallback(cb, this.poll)]);
   };
 });
 

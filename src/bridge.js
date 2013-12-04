@@ -79,6 +79,7 @@ function serverHandler(req, res) {
     // It's a global method
     else {
       try {
+        console.log('Calling global method', method);
         output = globalMethods[method].apply(globalMethods, request.args);
       }
       catch (err) {

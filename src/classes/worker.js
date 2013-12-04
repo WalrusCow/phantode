@@ -51,6 +51,14 @@ Worker.prototype.work = function(params, next) {
     var cbErr = null;
     var cbData = data;
 
+    try {
+      data = JSON.parse(data);
+    }
+    catch (e) {
+      callback(e);
+      return;
+    }
+
     if (!data) {
       // Don't send data to callback on error
       cbErr = 'No response data: ' + method + '()';
@@ -66,6 +74,7 @@ Worker.prototype.work = function(params, next) {
       // TODO: Need to find a good way to expose this
       // since currently makeNewPage requires the requestQueue and
       // the pollFunction.  It should really just require the id though
+      console.log('Calling new page; data is a ', data);
       var page = self.phantom._makeNewPage(data.pageId);
       cbData = page;
     }

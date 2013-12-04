@@ -39,6 +39,7 @@ function Phantom(process) {
 }
 
 Phantom.prototype._makeNewPage = function(id) {
+  console.log('Creating new page with id', id);
   var newPage = new Page(id, this.requestQueue, this.poller);
   this.pages[id] = newPage;
   return newPage;
@@ -69,7 +70,6 @@ for (var key in methods) {
 
 Phantom.prototype.exit = function(cb) {
   /* Kill the phantom process. */
-  console.log('Killing process');
   this._process.kill();
   commonUtil.safeCallback(cb)();
 };

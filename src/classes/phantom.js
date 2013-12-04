@@ -24,6 +24,7 @@ function Phantom(process) {
   /* A wrapper object around the phantom process. */
   // Pages for this process
   this.pages = {};
+  this._process = process;
 
   // TODO: How to extract pages and shit from longpoll?
   // maybe pass this?
@@ -68,13 +69,14 @@ for (var key in methods) {
 
 Phantom.prototype.exit = function(cb) {
   /* Kill the phantom process. */
-  this.phantom.kill('SIGTERM');
+  console.log('Killing process');
+  this._process.kill();
   commonUtil.safeCallback(cb)();
 };
 
 Phantom.prototype.on = function() {
   /* Pass down to phantom process. */
-  this.phantom.on.apply(this.phantom, arguments);
+  this._process.on.apply(this.phantom, arguments);
 };
 
 module.exports = Phantom;

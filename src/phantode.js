@@ -69,6 +69,23 @@ function spawnPhantom(opts, callback) {
   }, 100);
 }
 
+function cleanup(phantom) {
+  /* Make sure to clean up after a phantom. */
+
+  function clean() {
+    /* Try to exit phantom, but fail silently. */
+    try {
+      phantom.exit();
+    }
+    catch (e) {}
+    process.exit(1);
+  }
+
+  // On process termination or uncaught exception
+  process.on('SIGINT', clean);
+  process.on('uncaughtException', clean);
+}
+
 function handlePhantom(callback) {
   /* Essentially just wrap callback. */
 
@@ -78,6 +95,9 @@ function handlePhantom(callback) {
 
     // Create new wrapper for this process
     var phantom = new Phantom(phantomProcess);
+
+    // Make sure to always kill child processes
+    cleanup(phantom);
     callback(null, phantom);
   };
 }

@@ -33,7 +33,9 @@ Queue.prototype.process = function() {
   var todo = this._queue.length;
 
   function cb() {
-    if (++done === todo) this._processing = false;
+    done += 1;
+    if (done === todo) self._processing = false;
+    console.log('Process callback',done, todo);
   }
 
   // Process each element

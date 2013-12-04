@@ -80,7 +80,7 @@ Page.prototype.waitForSelector = function(selector, cb, timeout) {
 };
 
 // Build prototype with a bunch of identical functions
-config.methods.forEach(function(method) {
+config.pageMethods.forEach(function(method) {
   Page.prototype[method] = function() {
     var args = Array.prototype.slice.call(arguments);
     var callback;

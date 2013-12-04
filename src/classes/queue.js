@@ -11,7 +11,6 @@ function Queue(worker) {
 Queue.prototype.push = function(task) {
   /* Push a task to the queue. */
 
-  console.log('Pushing ', task);
   // Push a function to the queue
   this._queue.push(task);
 

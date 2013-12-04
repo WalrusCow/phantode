@@ -90,7 +90,6 @@ config.pageMethods.forEach(function(method) {
       cb = args.pop();
     }
     var params = [this.id, method].concat(args);
-    console.log('page method',method,this);
     this.queue.push([params, commonUtil.safeCallback(cb, this.poll)]);
   };
 });

@@ -40,7 +40,6 @@ LongPoll.prototype.close = function() {
 
 LongPoll.prototype._processResult = function(result) {
   /* Process a single result from the bridge. */
-  console.log('Processing result ', result);
 
   // Do nothing if process is dead
   if (this._dead) return;
@@ -96,7 +95,6 @@ LongPoll.prototype.poll = function(callback) {
       return;
     }
 
-    console.log('Got back http poll');
     // Process each result
     data.forEach(self._processResult.bind(self));
 

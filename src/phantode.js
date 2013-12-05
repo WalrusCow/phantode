@@ -82,8 +82,9 @@ function cleanup(phantom) {
   }
 
   // On process termination or uncaught exception
-  process.on('SIGINT', clean);
-  process.on('uncaughtException', clean);
+  ['SIGINT', 'uncaughtException'].forEach(function(sig) {
+    process.on(sig, clean));
+  });
 }
 
 function handlePhantom(callback) {

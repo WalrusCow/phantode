@@ -7,15 +7,18 @@ var http = require('http');
 var config = require('../config');
 var commonUtil = require('../util');
 
-function LongPoll(phantomProcess, pages, setupPage) {
+function LongPoll(phantom) {
   // Record if the phantom process is dead yet
   this._dead = false;
 
-  this.pollInterval = 500;
-
   // TODO: Have this encapsulated somewhere in a function/class
   // because this is horribly all intertwined
-  this.pages = pages;
+  this.phantomProcess = phantom._process;
+  this.pages = phantom.pages;
+  this.setupPage = phantom._makeNewPage;
+
+  // How long between polls
+  this.pollInterval = 500;
 
   // Options to use to send requests to the bridge
   // TODO: Should this be configurable?
@@ -38,6 +41,7 @@ LongPoll.prototype.close = function() {
   this._dead = true;
 };
 
+// TODO: This should be elsewhere - some worker or something
 LongPoll.prototype._processResult = function(result) {
   /* Process a single result from the bridge. */
 
@@ -47,21 +51,21 @@ LongPoll.prototype._processResult = function(result) {
   // TODO: What is this situation?
   // Execute function on the process itself
   if (!result.pageId) {
-    var cb = commonUtil.safeCallback(phantomProcess[result.callback]);
-    cb.apply(phantomProcess, result.args);
+    var cb = commonUtil.safeCallback(this.phantomProcess[result.callback]);
+    cb.apply(this.phantomProcess, result.args);
     return;
   }
 
   // The page specified by the result
   var page = this.pages[result.pageId];
   if (!page) {
-    console.warn('Invalid page ID received: %s', pageId);
+    console.warn('Invalid page ID received: %s', result.pageId);
     return;
   }
 
   if (result.callback === 'onPageCreated') {
     // We actually want to do something special for new pages
-    result.args = [setupPage(result.args[0])];
+    result.args = [this.setupPage(result.args[0])];
   }
 
   // Call the specified callback with the specified arguments

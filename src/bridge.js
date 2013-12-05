@@ -140,7 +140,7 @@ function setupCallbacks(id, page) {
       // TODO: Whyyyyy
       if (cb === 'onClosing') args = [];
 
-      pushCallback(pageId, cb, args);
+      pushCallback(id, cb, args);
     };
   });
 
@@ -148,7 +148,7 @@ function setupCallbacks(id, page) {
   page.onPageCreated = function(page) {
     var newId = setupPage(page);
     // TODO: Avoid array here
-    pushCallback(pageId, cb, newId);
+    pushCallback(id, cb, newId);
   };
 
 }

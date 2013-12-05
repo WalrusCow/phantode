@@ -28,10 +28,10 @@ function Phantom(process) {
 
   // TODO: How to extract pages and shit from longpoll?
   // maybe pass this?
-  this.poller = new LongPoll(process, this);
+  this.poller = new LongPoll(this);
 
   // Stop polling once process has died
-  process.once('exit', this.poller.close);
+  process.once('exit', this.poller.close.bind(this.poller));
 
   var queueWorker = new Worker(this);
   // A queue to use for processing requests

@@ -27,6 +27,19 @@ Worker.prototype.work = function(params, next) {
   // Other arguments
   var args = params.slice(2);
 
+  // Properly stringify all arguments to be eval'd on the other side
+  args.forEach(function(arg, i) {
+    if (typeof arg === 'string') {
+      args[i] = '"' + arg + '"';
+    }
+    else if (typeof arg === 'object') {
+      args[i] = JSON.stringify(arg);
+    }
+    else {
+      args[i] = arg.toString();
+    }
+  });
+
   // JSON to send to bridge
   var json = JSON.stringify({
     page: page,
@@ -79,6 +92,7 @@ Worker.prototype.work = function(params, next) {
     callback(cbErr, cbData);
   }));
 
+  console.log('JSON writing:', json);
   // Send JSON
   req.write(json);
 

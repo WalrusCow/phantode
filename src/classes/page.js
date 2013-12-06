@@ -85,6 +85,7 @@ config.pageMethods.forEach(function(method) {
     var args = Array.prototype.slice.call(arguments);
     var callback;
 
+    console.log('Page method ', method);
     // Check if we were given a callback as the last argument
     if (args.length && typeof args[args.length - 1] === 'function') {
       cb = args.pop();

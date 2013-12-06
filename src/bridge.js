@@ -61,25 +61,34 @@ function serverHandler(req, res) {
     var method = request.method;
     var output, error;
 
+    // Convert arguments appropriately
+    var args = request.args;
+    for (var i = 0; i < args.length; ++i) {
+      args[i] = eval('(' + args[i] + ')');
+    }
+
     // It's a method for a page
     if (request.page) {
       var page = pages[request.page];
       if (method === 'open') {
-        return pageOpen(res, page, request.args);
+        return pageOpen(res, page, args);
       }
 
       try {
-        output = page[method].apply(page, request.args);
+        console.log('Applying method ', method,'from page', request.page);
+        output = page[method].apply(page, args);
       }
       catch (err) {
         error = err;
+        console.log('got an error', err);
       }
     }
 
     // It's a global method
     else {
       try {
-        output = globalMethods[method].apply(globalMethods, request.args);
+        console.log('Applying global method ', method);
+        output = globalMethods[method].apply(globalMethods, args);
       }
       catch (err) {
         error = err;

@@ -1,3 +1,8 @@
+/*
+ * Bridge file.  This is run under PhantomJS and communicates
+ * with the outside world (main phantode driver) via http.
+ */
+
 // We include everything so that we can access everything
 var fs = require('fs');
 var webpage = require('webpage');
@@ -93,6 +98,7 @@ function serve(req, res) {
 
 // Make the server listen
 var server = require('webserver');
+// TODO: Increment port so that we can spawn multiple processes
 server.listen(config.port, serve);
 
 // Override build in methods for use with us

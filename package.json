@@ -9,7 +9,9 @@
     "url": "git://github.com/WalrusCow/phantode.git"
   },
   "main": "phantode.js",
-  "dependencies": {},
+  "dependencies": {
+    "underscore": "~1.5.2"
+  },
   "optionalDependencies": {},
   "engines": {
     "node": "*"

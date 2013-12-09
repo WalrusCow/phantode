@@ -26,6 +26,9 @@ function overrideMethods() {
   /* Override existing methods for compatibility. */
   // This can be extended into a loop if necessary at a later date
   var oldCreate = webpage.create;
+
+  // TODO: Page setup (override callbacks, etc)
+  // Also, use variable number of callbacks
   webpage.create = function() {
     pageId += 1;
     pages[pageId] = oldCreate.apply(webpage, arguments);

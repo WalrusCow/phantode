@@ -3,6 +3,7 @@
  */
 
 var http = require('http');
+var _ = require('underscore');
 
 // TODO: We need to account for incrementing port
 var config = require('./config');
@@ -42,11 +43,13 @@ Poller.prototype.poll = function(callback) {
     if (self._dead) return;
 
     if (err) {
+      // Some error in retrieving data
       console.warn('Error from poll request: %s', err);
       return;
     }
 
     try {
+      // We should always get JSON back
       data = JSON.parse(data);
     }
     catch (e) {
@@ -54,7 +57,8 @@ Poller.prototype.poll = function(callback) {
       return;
     }
 
-    _.each(data, router.route);
+    // Route each callback appropriately
+    _.each(data, self.router.route);
   }));
 
   this.repeatPoll();

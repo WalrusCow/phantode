@@ -23,7 +23,7 @@ PageList.prototype.route = function(data) {
   var page = this._pages[data.pageID];
   if (!page) {
     // Page doesn't exist
-    console.warn('Invalid page ID: %s', data.pageID);
+    console.error('Invalid page ID: %s', data.pageID);
     return;
   }
 

@@ -44,7 +44,7 @@ Poller.prototype.poll = function(callback) {
 
     if (err) {
       // Some error in retrieving data
-      console.warn('Error from poll request: %s', err);
+      console.error('Error from poll request: %s', err);
       return;
     }
 
@@ -53,7 +53,7 @@ Poller.prototype.poll = function(callback) {
       data = JSON.parse(data);
     }
     catch (e) {
-      console.warn('Error parsing JSON from bridge: %s', e);
+      console.error('Error parsing JSON from bridge: %s', e);
       return;
     }
 

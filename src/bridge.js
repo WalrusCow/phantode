@@ -22,7 +22,7 @@ var callbackStack = [];
 // Track the pages that we have created
 var pages = {};
 
-function overrideMethods() {
+function patchBuiltins() {
   /* Override existing methods for compatibility. */
   // This can be extended into a loop if necessary at a later date
   var oldCreate = webpage.create;
@@ -86,7 +86,14 @@ function callFunction(req, res) {
   res.close();
 }
 
-function serve(req, res) {
+function getCallbacks(req, res) {
+  res.end();
+}
+
+// Make the server listen
+var server = webserver.create();
+// TODO: Increment port so that we can spawn multiple processes
+server.listen(config.port, function(req, res) {
   /* Web server driver. */
   if (req.method === 'POST') {
     // Calling a function
@@ -95,14 +102,11 @@ function serve(req, res) {
 
   else {
     // Polling for callbacks
-    pollCallbacks(req, res);
+    getCallbacks(req, res);
   }
-}
-
-// Make the server listen
-var server = require('webserver');
-// TODO: Increment port so that we can spawn multiple processes
-server.listen(config.port, serve);
+});
 
 // Override build in methods for use with us
-overrideBuiltins();
+patchBuiltins();
+
+system.stdout.write('Phantode Ready');

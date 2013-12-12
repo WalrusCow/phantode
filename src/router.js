@@ -36,7 +36,7 @@ PageList.prototype.route = function(data) {
 
   // Convert arguments appropriately
   var args = _.map(data.args, function(arg) {
-    return arg.eval ? eval(arg) : arg;
+    return arg.eval ? eval(arg.val) : JSON.parse(arg.val);
   });
 
   // Call the actual method

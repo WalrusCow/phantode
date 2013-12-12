@@ -26,8 +26,7 @@ Phantom.prototype._ensureCleanup = function() {
   _.each(['SIGINT', 'uncaughtException'], function(sig) {
     process.on(sig, clean);
   });
-}
-
+};
 
 Phantom.prototype.exit = function() {
   /* Kill process. */

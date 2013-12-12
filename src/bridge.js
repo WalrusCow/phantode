@@ -47,8 +47,8 @@ function callFunction(req, res) {
   res.statusCode = 200;
 
   // Convert request arguments into real arguments
-  var args = _.map(req.args, function(arg) {
-    return arg.eval ? eval(arg) : arg;
+  var args = _.map(data.args, function(arg) {
+    return arg.eval ? eval(arg.val) : JSON.parse(arg.val);
   });
 
   var context, func;

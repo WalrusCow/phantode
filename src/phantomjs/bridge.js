@@ -10,6 +10,8 @@ var system = require('system');
 var child_process = require('child_process');
 var webserver = require('webserver');
 
+var codify = require('../codify');
+
 // Some configuration information (mostly what port to listen on)
 var config = require('./config');
 
@@ -47,9 +49,7 @@ function callFunction(req, res) {
   res.statusCode = 200;
 
   // Convert request arguments into real arguments
-  var args = _.map(data.args, function(arg) {
-    return arg.eval ? eval(arg.val) : JSON.parse(arg.val);
-  });
+  var args = _.map(data.args, codify.decodeArg);
 
   var context, func;
   // A global function

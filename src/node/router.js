@@ -4,6 +4,7 @@
 
 var _ = require('underscore');
 var Page = require('./page');
+var codify = require('../codify');
 
 function PageList() {
   // Object of all pages that we drive
@@ -35,9 +36,7 @@ PageList.prototype.route = function(data) {
   }
 
   // Convert arguments appropriately
-  var args = _.map(data.args, function(arg) {
-    return arg.eval ? eval(arg.val) : JSON.parse(arg.val);
-  });
+  var args = _.map(data.args, codify.decodeArg);
 
   // Call the actual method
   method.apply(page, args);

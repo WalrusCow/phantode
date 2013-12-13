@@ -10,7 +10,8 @@
   },
   "main": "phantode.js",
   "dependencies": {
-    "underscore": "~1.5.2"
+    "underscore": "~1.5.2",
+    "requestData": "git+ssh://git@github.com:WalrusCow/requestData.git"
   },
   "optionalDependencies": {},
   "engines": {

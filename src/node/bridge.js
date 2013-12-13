@@ -3,7 +3,7 @@
  */
 
 var config = require('../config');
-var useData = require('useData');
+var requestData = require('requestData');
 
 function useFunction(func, callback) {
   /* Use the encoded function. Call callback with (err, results). */
@@ -22,7 +22,7 @@ function useFunction(func, callback) {
     }
   };
 
-  var req = http.request(httpOptions, commonUtil.useData(function(err, data) {
+  var req = http.request(httpOptions, requestData(function(err, data) {
     try {
       data = JSON.parse(data);
     }

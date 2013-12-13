@@ -1,6 +1,5 @@
 /*
- * Functions for communicating with the bridge.
- * ... or something
+ * Functions for encoding/decoding communications over the bridge.
  */
 
 var _ = require('underscore');

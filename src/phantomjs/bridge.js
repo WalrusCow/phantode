@@ -13,7 +13,7 @@ var webserver = require('webserver');
 var codify = require('../codify');
 
 // Some configuration information (mostly what port to listen on)
-var config = require('./config');
+var config = require('../config');
 
 // Underscore is always useful
 var _ = require('underscore');

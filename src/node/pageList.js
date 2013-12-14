@@ -15,7 +15,9 @@ function PageList() {
 PageList.prototype.newPage = function() {
   /* Create a new page. */
   this._nextID += 1;
-  this._pages[nextID] = new Page();
+  var page = new Page(this._nextID);
+  this._pages[nextID] = page;
+  return page;
 };
 
 PageList.prototype.route = function(data) {

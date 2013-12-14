@@ -16,7 +16,7 @@ exports.spawn = function(callback, opt) {
   opt = opt || {};
   opt.params = opt.params || {};
   var phantomPath = opt.phantomPath || 'phantomjs';
-  var bridge = opt.bridge || __dirname + '/bridge.js';
+  var bridge = opt.bridge || __dirname + '/../phantomjs/bridge.js';
 
   // Create string arguments for the process
   var args = _.map(opt.params, function(val, key) {
@@ -30,10 +30,10 @@ exports.spawn = function(callback, opt) {
   var phantomProcess = child_process.spawn(phantomPath, args);
 
   // Call the callback if there are any errors
-  phantomProcess.once('error', callback);
+  //phantomProcess.once('error', callback);
   phantomProcess.stderr.on('data', console.error);
 
-  // Listen for our output from bridge
+  //// Listen for our output from bridge
   phantomProcess.stdout.once('data', function(data) {
     phantomProcess.stdout.on('data', console.info);
 

@@ -6,24 +6,26 @@ var _ = require('underscore');
 var Page = require('./page');
 var codify = require('../codify');
 
-function PageList() {
+function PageList(bridge) {
   // Object of all pages that we drive
-  this._pages = {};
-  this._nextID = 0;
+  this.bridge = bridge;
+
+  this.pages = {};
+  this.nextID = 0;
 }
 
-PageList.prototype.newPage = function() {
+PageList.prototype.create = function() {
   /* Create a new page. */
-  this._nextID += 1;
-  var page = new Page(this._nextID);
-  this._pages[nextID] = page;
+  this.nextID += 1;
+  var page = new Page(this.nextID, this.bridge);
+  this.pages[nextID] = page;
   return page;
 };
 
 PageList.prototype.route = function(data) {
   /* Route cb to correct page. */
 
-  var page = this._pages[data.pageID];
+  var page = this.pages[data.pageID];
   if (!page) {
     // Page doesn't exist
     console.error('Invalid page ID: %s', data.pageID);

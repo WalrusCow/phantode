@@ -2,6 +2,9 @@
  * Class for managing page-level functions.
  */
 
+var _ = require('underscore')
+var codify = require('../codify');
+
 // Page callbacks
 var callbacks = [
   'alert', 'callback', 'closing', 'confirm', 'consoleMessage',
@@ -20,21 +23,38 @@ var methods = [
   'switchToChildFrame', 'switchToMainFrame', 'switchToParentFrame', 'uploadFile'
 ];
 
-function Page(id) {
+function Page(id, bridge) {
   /* A page. */
+  this.id = id;
+  this.bridge = bridge;
 };
 
 Page.prototype.set = function(prop, val) {
   /* Set a property for the page. */
-
-  // Poll bridge
-  // Also set here
-  this.prop = val;
+  this[prop] = val;
+  var args = [prop, val];
+  var func = codify.encodeFunc(this.id, 'set', args);
+  this.bridge.useFunction(func, callback);
 };
 
 Page.prototype.get = function(prop, callback) {
   /* Get a property. */
-
-  // Poll bridge
-
+  var args = [prop];
+  var func = codify.encodeFunc(this.id, 'get', args);
+  this.bridge.useFunction(func, callback);
 };
+
+callbacks.forEach(addCallback);
+
+_.each(methods, function(method) {
+  // Add to prototype
+  Page.prototype[method] = function() {
+    var args = Array.prototype.slice.call(arguments);
+    // Extract the callback
+    var cb = (typeof args[args.length - 1] === 'function') ? args.pop() : noop;
+    // Encode function for use
+    var func = codify.encodeFunc(this.id, method, args);
+    // Send function over bridge
+    this.bridge.useFunction(func, cb);
+  };
+});

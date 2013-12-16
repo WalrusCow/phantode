@@ -109,4 +109,5 @@ server.listen(config.port, function(req, res) {
 // Override build in methods for use with us
 patchBuiltins();
 
+// TODO: Send port from `server.port` ?
 system.stdout.write('Phantode Ready');

@@ -44,7 +44,10 @@ Page.prototype.get = function(prop, callback) {
   this.bridge.useFunction(func, callback);
 };
 
-callbacks.forEach(addCallback);
+// TODO: callbacks
+//function addCallback() {
+//}
+//callbacks.forEach(addCallback);
 
 _.each(methods, function(method) {
   // Add to prototype
@@ -58,3 +61,5 @@ _.each(methods, function(method) {
     this.bridge.useFunction(func, cb);
   };
 });
+
+module.exports = Page;

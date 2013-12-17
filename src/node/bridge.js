@@ -2,10 +2,24 @@
  * Functions for communicating with the bridge.
  */
 
-var config = require('../config');
 var requestData = require('requestData');
+var events = require('events');
+var http = require('http');
 
-function useFunction(func, callback) {
+var _ = require('underscore');
+
+function Bridge(port) {
+  /* Bridge class to communicate with PhantomJS. */
+  this.port = port;
+  this.pollInterval = 500;
+  this._dead = false;
+  // Function for repeated polling, but not too often
+  this.repeatPoll = _.throttle(this.poll, this.pollInterval);
+  // Begin polling
+  this.poll();
+}
+
+Bridge.prototype.useFunc = function(func, callback) {
   /* Use the encoded function. Call callback with (err, results). */
 
   var json = JSON.stringify(func);
@@ -13,7 +27,7 @@ function useFunction(func, callback) {
   var httpOptions = {
     hostname: '127.0.0.1',
     // TODO: Variable port
-    port: config.port,
+    port: this.port,
     path: '/',
     method: 'POST',
     headers: {
@@ -22,7 +36,7 @@ function useFunction(func, callback) {
     }
   };
 
-  var req = http.request(httpOptions, requestData(function(err, data) {
+  var req = http.request(httpOptions, requestData.useData(function(err, data) {
     try {
       data = JSON.parse(data);
     }
@@ -31,9 +45,54 @@ function useFunction(func, callback) {
       return;
     }
     callback(err, data);
-  });
+  }));
 
   req.write(json);
   req.on('error', callback);
   req.end();
-}
+};
+
+Bridge.prototype.close = function() {
+  /* Kill polling. */
+  this._dead = true;
+};
+
+Bridge.prototype.poll = function() {
+  /* Poll for callbacks. */
+  if (this._dead) return;
+
+  var self = this;
+  var dest = 'http://127.0.0.1:' + this.port;
+  var req = http.get(dest, requestData.useData(function(err, data) {
+    if (self._dead) return;
+
+    if (err) {
+      // Some error in retrieving data
+      console.error('Error from poll request: %s', err);
+      return;
+    }
+
+    try {
+      // We should always get JSON back
+      data = JSON.parse(data);
+    }
+    catch (e) {
+      console.error('Error parsing JSON from bridge: %s', e);
+      return;
+    }
+
+    // TODO: Emit callbacks
+    _.each(data, function(foo) {
+      self.emit('callback', foo);
+    });
+
+  }));
+
+  // Poll continuously
+  this.repeatPoll();
+};
+
+// We want to emit events
+_.extend(Bridge.prototype, events.EventEmitter.prototype);
+
+module.exports = Bridge;

@@ -23,6 +23,7 @@ var callbackStack = [];
 
 // Track the pages that we have created
 var pages = {};
+var pageId = 0;
 
 function patchBuiltins() {
   /* Override existing methods for compatibility. */
@@ -52,6 +53,7 @@ function callFunction(req, res) {
   var args = _.map(data.args, codify.decodeArg);
 
   var context, func;
+  console.log('Calling function with data: ', JSON.stringify(data));
   // A global function
   if (data.ctx === 'global') {
     context = eval(data.func);
@@ -59,11 +61,19 @@ function callFunction(req, res) {
   }
 
   // We have a page-level function (context is a page ID)
-  // TODO: Also context for webpage, webserver, etc
-  else {
+  else if (typeof data.ctx === 'number') {
     context = pages[data.ctx];
     func = context[data.func];
   }
+
+  // It's a function from a module
+  else {
+    context = eval(data.ctx);
+    func = context[data.func];
+  }
+
+  console.log('Calling context: ', context);
+  console.log('Calling function: ', func);
 
   // Run the function
   try {
@@ -71,6 +81,8 @@ function callFunction(req, res) {
   }
   catch (e) {
     // Error, update code accordingly
+    // TODO: ORRRR... we could send back an object which has
+    // two fields: err & output
     res.statusCode = 500;
     output = e;
   }
@@ -79,7 +91,6 @@ function callFunction(req, res) {
   res.headers = {
     'Content-Type': 'application/json'
   };
-  res.statusCode = statusCode;
 
   // Write output
   res.write(JSON.stringify(output));
@@ -87,6 +98,9 @@ function callFunction(req, res) {
 }
 
 function getCallbacks(req, res) {
+  console.log('getCallbacks');
+  res.statusCode = 200;
+  res.write('');
   res.end();
 }
 
@@ -96,11 +110,13 @@ var server = webserver.create();
 server.listen(config.port, function(req, res) {
   /* Web server driver. */
   if (req.method === 'POST') {
+    console.log('Got POST');
     // Calling a function
     callFunction(req, res);
   }
 
   else {
+    console.log('Got GET');
     // Polling for callbacks
     getCallbacks(req, res);
   }

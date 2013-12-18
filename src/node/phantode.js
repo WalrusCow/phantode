@@ -6,6 +6,7 @@ var child_process = require('child_process');
 var _ = require('underscore');
 
 var Phantom = require('./phantom');
+var config = require('../config');
 
 // TODO: May need to add something about checking what port
 // the bridge is listening on
@@ -31,11 +32,15 @@ exports.spawn = function(callback, opt) {
 
   // Call the callback if there are any errors
   //phantomProcess.once('error', callback);
-  phantomProcess.stderr.on('data', console.error);
+  phantomProcess.stderr.on('data', function(data) {
+    console.error('PhantomJS stderr: %s', data);
+  });
 
-  //// Listen for our output from bridge
+  // Listen for our output from bridge
   phantomProcess.stdout.once('data', function(data) {
-    phantomProcess.stdout.on('data', console.info);
+    phantomProcess.stdout.on('data', function(data) {
+      console.info('PhantomJS stdout: %s', data);
+    });
 
     if (!/Phantode Ready/.test(data)) {
       phantomProcess.kill();
@@ -43,7 +48,7 @@ exports.spawn = function(callback, opt) {
     }
 
     // Callback with process handler
-    callback(null, new Phantom(phantomProcess));
+    callback(null, new Phantom(phantomProcess, config.port));
   });
 
   var exitCode = 0;

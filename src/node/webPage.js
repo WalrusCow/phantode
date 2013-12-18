@@ -16,9 +16,17 @@ function WebPage(bridge) {
 WebPage.prototype.create = function(callback) {
   /* Create a new page. */
   this._nextId += 1;
-  var page = new Page(this._nextId, this.bridge);
-  this._pages[this._nextId] = page;
-  callback(null, page);
+
+  // Also notify the bridge that we have created a new page
+  var func = codify.encodeFunc('webpage', 'create');
+  var self = this;
+  this._bridge.useFunc(func, function(err) {
+    if (err) return callback(err);
+
+    var page = new Page(self._nextId, self.bridge);
+    self._pages[self._nextId] = page;
+    callback(null, page);
+  });
 };
 
 WebPage.prototype._route = function(cbData) {

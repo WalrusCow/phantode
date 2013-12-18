@@ -10,18 +10,20 @@ var _ = require('underscore');
 
 function Bridge(port) {
   /* Bridge class to communicate with PhantomJS. */
+  console.log('THE PORT IS: ',port);
   this.port = port;
   this.pollInterval = 500;
   this._dead = false;
   // Function for repeated polling, but not too often
   this.repeatPoll = _.throttle(this.poll, this.pollInterval);
   // Begin polling
-  this.poll();
+  //this.poll();
 }
 
 Bridge.prototype.useFunc = function(func, callback) {
   /* Use the encoded function. Call callback with (err, results). */
 
+  console.log('using func');
   var json = JSON.stringify(func);
 
   var httpOptions = {
@@ -37,6 +39,9 @@ Bridge.prototype.useFunc = function(func, callback) {
   };
 
   var req = http.request(httpOptions, requestData.useData(function(err, data) {
+    console.log('WE GOT RESAPONSSE');
+    console.log('the err', err);
+    console.log('the data',data);
     try {
       data = JSON.parse(data);
     }
@@ -61,9 +66,11 @@ Bridge.prototype.poll = function() {
   /* Poll for callbacks. */
   if (this._dead) return;
 
+  console.log('polling');
   var self = this;
   var dest = 'http://127.0.0.1:' + this.port;
   var req = http.get(dest, requestData.useData(function(err, data) {
+    console.log('polled');
     if (self._dead) return;
 
     if (err) {

@@ -25,23 +25,23 @@ var methods = [
 
 function Page(id, bridge) {
   /* A page. */
-  this.id = id;
-  this.bridge = bridge;
+  this._id = id;
+  this._bridge = bridge;
 };
 
 Page.prototype.set = function(prop, val) {
   /* Set a property for the page. */
   this[prop] = val;
   var args = [prop, val];
-  var func = codify.encodeFunc(this.id, 'set', args);
-  this.bridge.useFunction(func, callback);
+  var func = codify.encodeFunc(this._id, 'set', args);
+  this._bridge.useFunction(func, callback);
 };
 
 Page.prototype.get = function(prop, callback) {
   /* Get a property. */
   var args = [prop];
-  var func = codify.encodeFunc(this.id, 'get', args);
-  this.bridge.useFunction(func, callback);
+  var func = codify.encodeFunc(this._id, 'get', args);
+  this._bridge.useFunction(func, callback);
 };
 
 // TODO: callbacks
@@ -56,9 +56,9 @@ _.each(methods, function(method) {
     // Extract the callback
     var cb = (typeof args[args.length - 1] === 'function') ? args.pop() : noop;
     // Encode function for use
-    var func = codify.encodeFunc(this.id, method, args);
+    var func = codify.encodeFunc(this._id, method, args);
     // Send function over bridge
-    this.bridge.useFunction(func, cb);
+    this._bridge.useFunction(func, cb);
   };
 });
 

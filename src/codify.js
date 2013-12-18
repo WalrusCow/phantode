@@ -6,9 +6,7 @@ var _ = require('underscore');
 
 var encodeArg = exports.encodeArg = function(val) {
   /* Turn a value into an argument that we use. */
-
   var arg;
-
   // We need to `eval` functions on the other side
   if (typeof arg === 'function') {
     arg = {
@@ -31,7 +29,7 @@ var decodeArg = exports.decodeArg = function(arg) {
   return arg.eval ? eval(arg.val) : arg.val;
 }
 
-var encodeFunc = exports.encodeFunc = function(context, func, args) {
+exports.encodeFunc = function(context, func, args) {
   /*
    * Encode a function to use in PhantomJS.
    *

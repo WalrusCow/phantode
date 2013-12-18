@@ -1,7 +1,6 @@
 /*
  * Emulate the PhantomJS `webpage` module.
  */
-
 // Object to take care of page organization
 var _ = require('underscore');
 var Page = require('./page');
@@ -19,7 +18,7 @@ WebPage.prototype.create = function(callback) {
   this._nextId += 1;
   var page = new Page(this._nextId, this.bridge);
   this._pages[this._nextId] = page;
-  return page;
+  callback(null, page);
 };
 
 WebPage.prototype._route = function(cbData) {

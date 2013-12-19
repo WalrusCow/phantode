@@ -76,6 +76,8 @@ Phantom.prototype._routeCallback = function(data) {
   // TODO
 };
 
+// TODO: This should be on the `phantom` object that this has as a member,
+// since that's where it is in PhantomJS
 Phantom.prototype.exit = function() {
   /* Kill process. */
   this._process.kill();

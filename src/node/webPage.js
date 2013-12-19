@@ -23,7 +23,7 @@ WebPage.prototype.create = function(callback) {
   this._bridge.useFunc(func, function(err) {
     if (err) return callback(err);
 
-    var page = new Page(self._nextId, self.bridge);
+    var page = new Page(self._nextId, self._bridge);
     self._pages[self._nextId] = page;
     callback(null, page);
   });

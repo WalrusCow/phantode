@@ -23,6 +23,8 @@ var methods = [
   'switchToChildFrame', 'switchToMainFrame', 'switchToParentFrame', 'uploadFile'
 ];
 
+function noop() {}
+
 function Page(id, bridge) {
   /* A page. */
   this._id = id;
@@ -34,14 +36,14 @@ Page.prototype.set = function(prop, val) {
   this[prop] = val;
   var args = [prop, val];
   var func = codify.encodeFunc(this._id, 'set', args);
-  this._bridge.useFunction(func, callback);
+  this._bridge.useFunc(func, callback);
 };
 
 Page.prototype.get = function(prop, callback) {
   /* Get a property. */
   var args = [prop];
   var func = codify.encodeFunc(this._id, 'get', args);
-  this._bridge.useFunction(func, callback);
+  this._bridge.useFunc(func, callback);
 };
 
 // TODO: callbacks
@@ -58,7 +60,7 @@ _.each(methods, function(method) {
     // Encode function for use
     var func = codify.encodeFunc(this._id, method, args);
     // Send function over bridge
-    this._bridge.useFunction(func, cb);
+    this._bridge.useFunc(func, cb);
   };
 });
 

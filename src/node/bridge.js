@@ -49,7 +49,22 @@ Bridge.prototype.useFunc = function(func, callback) {
       callback(e);
       return;
     }
-    callback(err, data);
+
+    var args;
+    console.log(_.isArray(data));
+    if (_.isArray(data)) {
+      // We were given an array (it was a callback)
+      // Put error as first argument
+      data.unshift(err);
+      args = data;
+    }
+    else {
+      args = [err, data];
+    }
+
+    console.log('Calling useFunc cb with ', args);
+
+    callback.apply(callback, args);
   }));
 
   req.write(json);

@@ -26,7 +26,7 @@ var encodeArg = exports.encodeArg = function(val) {
 }
 
 var decodeArg = exports.decodeArg = function(arg) {
-  return arg.eval ? eval(arg.val) : arg.val;
+  return arg.eval ? eval(arg.val) : JSON.parse(arg.val);
 }
 
 exports.encodeFunc = function(context, func, args) {

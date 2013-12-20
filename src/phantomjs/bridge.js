@@ -91,9 +91,7 @@ function callFunction(req, res) {
     func = context[data.func];
   }
 
-  console.log('Calling context: ', context);
-  console.log('Calling function: ', func);
-
+  console.log('Calling function with args: ', args);
   // Run the function
   if (hasCallback) {
     // Function takes a callback, so some things are different
@@ -102,6 +100,7 @@ function callFunction(req, res) {
       var output = Array.prototype.slice.call(arguments);
       respond(output);
     });
+
 
     func.apply(context, args);
   }

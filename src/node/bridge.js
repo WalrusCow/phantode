@@ -39,9 +39,6 @@ Bridge.prototype.useFunc = function(func, callback) {
   };
 
   var req = http.request(httpOptions, requestData.useData(function(err, data) {
-    console.log('WE GOT RESAPONSSE');
-    console.log('the err', err);
-    console.log('the data',data);
     try {
       data = JSON.parse(data);
     }
@@ -61,8 +58,6 @@ Bridge.prototype.useFunc = function(func, callback) {
     else {
       args = [err, data];
     }
-
-    console.log('Calling useFunc cb with ', args);
 
     callback.apply(callback, args);
   }));
